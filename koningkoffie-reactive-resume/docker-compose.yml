@@ -1,0 +1,49 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: koningkoffie-reactive-resume_server_1
+      APP_PORT: 3000
+
+  server:
+    image: amruthpillai/reactive-resume:v5.3.0@sha256:9e25da172a60ba80891bd7217a9d63997776a69334ea7b975339578f479009aa
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      TZ: Europe/Amsterdam
+      APP_URL: http://${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
+      DATABASE_URL: postgresql://reactive_resume:${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD}@koningkoffie-reactive-resume_db_1:5432/reactive_resume
+      AUTH_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET}
+      ENCRYPTION_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET}
+      LOCAL_STORAGE_PATH: /app/data
+      FLAG_DISABLE_SIGNUPS: "false"
+    volumes:
+      - ${APP_DATA_DIR}/data/uploads:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1));"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  db:
+    image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+    restart: on-failure
+    environment:
+      POSTGRES_DB: reactive_resume
+      POSTGRES_USER: reactive_resume
+      POSTGRES_PASSWORD: ${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD}
+    volumes:
+      - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reactive_resume -d reactive_resume"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
