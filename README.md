@@ -10,10 +10,12 @@ A personal app store by [cschriel](https://github.com/cschriel), for Umbrel Home
 4. Open **Koning Koffie**, install **Reactive Resume**, and wait for the app to start.
 5. Open the app from your Umbrel home screen and create your own account.
 
-Use your Umbrel's local `.local` address, such as `http://umbrel.local`,
-to access the dashboard. The app uses the same device address on port **3067**.
-If your device has a different name, the configuration uses that name automatically.
-Port 3067 must be available on your device.
+Open the app using your Umbrel's local IPv4 address on port **3067**.
+The address is detected from the host routing table when Umbrel prepares the app.
+No device IP address is stored in this repository. Reserve the Umbrel IP address
+in your router's DHCP settings. If the address changes, restart the app through
+Umbrel to regenerate its configuration. Port 3067 must be available on the device.
+If IP detection fails, startup reports an error instead of using an incorrect URL.
 
 ## Included
 
@@ -31,8 +33,10 @@ The public repository contains installation files, not resumes or passwords.
   additional SMTP configuration. Keep your Reactive Resume password safe.
 - The AI Agent workspace (Redis/S3) is not included. External AI providers are optional
   and receive the data you send to them when used.
-- The configuration uses your local Umbrel hostname. Access through an IP address,
-  external domain, Tor, or reverse proxy has not been tested and may require changes to `APP_URL`.
+- The configuration uses the IPv4 source address selected by the default route.
+  On devices with multiple network interfaces or a host VPN, verify that this is
+  the address you use in your browser. Hostname, external domain, Tor, and reverse
+  proxy access may require changes to `APP_URL`.
 - Account registration is enabled so you can sign up on first launch.
   The app remains protected by Umbrel's login screen.
 
@@ -81,3 +85,7 @@ with `contents: write`. Repository policies or branch protection may block direc
 pushes; a failed run will report this. GitHub scheduled runs can be delayed and
 are disabled after 60 days of repository inactivity in public repositories.
 Re-enable the workflow in Actions if GitHub disables it.
+
+Package version **5.3.0.1** adds automatic IP detection without changing upstream
+Reactive Resume 5.3.0. The updater compares only the first three version components
+so that packaging revisions do not prevent future upstream updates.

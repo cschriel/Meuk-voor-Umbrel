@@ -59,7 +59,11 @@ def main():
     compose_path = APP / 'docker-compose.yml'
     manifest, compose = manifest_path.read_text(), compose_path.read_text()
     current = re.search(r'^version: "([^"]+)"$', manifest, re.MULTILINE).group(1)
-    if target <= version(current):
+    # A fourth component identifies an Umbrel packaging revision.
+    if not re.fullmatch(r'\d+\.\d+\.\d+(?:\.\d+)?', current):
+        raise ValueError('Unexpected installed package version')
+    current_upstream = '.'.join(current.split('.')[:3])
+    if target <= version(current_upstream):
         print(f'Already current: {current}. No changes.')
         return
     token = json.loads(fetch(f'https://auth.docker.io/token?service=registry.docker.io&scope=repository:{REPO}:pull')[0])['token']

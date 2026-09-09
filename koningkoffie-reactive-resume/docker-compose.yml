@@ -15,7 +15,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       TZ: Europe/Amsterdam
-      APP_URL: http://${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
+      APP_URL: http://${APP_KONINGKOFFIE_REACTIVE_RESUME_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}
       DATABASE_URL: postgresql://reactive_resume:${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD}@koningkoffie-reactive-resume_db_1:5432/reactive_resume
       AUTH_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET}
       ENCRYPTION_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET}
