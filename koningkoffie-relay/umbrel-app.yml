@@ -1,0 +1,34 @@
+manifestVersion: 1.3
+id: koningkoffie-relay
+category: automation
+name: Relay
+version: "0.8.0.1"
+tagline: Control AV devices on your local network
+icon: https://raw.githubusercontent.com/richardosseweijer/Relay-AV-Room-Control-/860983f6d41fc73670910efc177a079f6e4715ee/public/favicon.svg
+description: >-
+  Relay is a room controller for displays, projectors, receivers, lights, and
+  other AV devices on your local network. Build a touch-friendly control panel,
+  configure devices and macros, and operate the room from a tablet or browser.
+
+
+  On first launch, open the Configurator at /config with PIN 1234 and immediately
+  replace it with a stronger PIN. Relay is intended for a trusted private LAN.
+
+
+  This Umbrel package supports network-connected devices. Direct access to host
+  GPIO, I2C, CEC, IR, and serial hardware is not enabled in this release. Install
+  updates through the Umbrel app store; Relay's in-app GitHub updater is not
+  available inside the container.
+releaseNotes: "Initial Umbrel package for Relay 0.8.0, built from upstream commit 860983f."
+developer: Richard Osseweijer
+website: https://github.com/richardosseweijer/Relay-AV-Room-Control-
+dependencies: []
+repo: https://github.com/richardosseweijer/Relay-AV-Room-Control-
+support: https://github.com/richardosseweijer/Relay-AV-Room-Control-/issues
+port: 3068
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: "1234"
+submitter: cschriel
+submission: https://github.com/cschriel/Meuk-voor-Umbrel

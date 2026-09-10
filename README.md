@@ -8,7 +8,7 @@ Welcome to **Koning Koffie**, a personal Umbrel Community App Store with a targe
 
 ## Our extensive catalogue
 
-**Reactive Resume.**
+**Reactive Resume. Relay.**
 
 That's the catalogue.
 
@@ -37,6 +37,8 @@ Found a way to turn this into a subscription platform? Please close the tab.
 ## Acknowledgements
 
 [Reactive Resume](https://github.com/amruthpillai/reactive-resume) provides the resume builder. [Umbrel](https://umbrel.com) provides the platform.
+
+[Relay](https://github.com/richardosseweijer/Relay-AV-Room-Control-) provides local AV room control.
 
 I provide the additional configuration and the opportunity for something else to go wrong.
 

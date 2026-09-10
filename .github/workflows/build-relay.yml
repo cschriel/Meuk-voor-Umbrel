@@ -1,0 +1,45 @@
+name: Build Relay image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - koningkoffie-relay/Dockerfile
+      - .github/workflows/build-relay.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-relay
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the app store
+        uses: actions/checkout@v7
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish amd64 and arm64 images
+        uses: docker/build-push-action@v6
+        with:
+          context: koningkoffie-relay
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/cschriel/relay-av-room-control:0.8.0-1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
