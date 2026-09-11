@@ -28,8 +28,12 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 COPY --from=builder --chown=1000:1000 /app /app
+RUN cp -a /app/data /app/default-data
+COPY --chown=1000:1000 docker-entrypoint.sh /usr/local/bin/relay-entrypoint
+RUN chmod +x /usr/local/bin/relay-entrypoint
 
 USER 1000:1000
 EXPOSE 8081
 
+ENTRYPOINT ["relay-entrypoint"]
 CMD ["npm", "start"]
