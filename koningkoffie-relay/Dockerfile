@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim AS builder
 
-ARG RELAY_COMMIT=ce9c46a6c3c51dca870322df796110d2644c1c87
+ARG RELAY_COMMIT=673ff3267996f4cb988da5ab8de203e2baac6a70
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates git \

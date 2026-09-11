@@ -35,21 +35,45 @@ def replace_once(pattern, replacement, text):
 
 
 def parse_version(value):
-    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", value)
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?", value)
     if not match:
-        raise ValueError(f"Expected a stable semantic version, got {value!r}")
-    return tuple(map(int, match.groups()))
+        raise ValueError(f"Expected a numeric Relay version, got {value!r}")
+    return tuple(int(part) for part in match.groups(default="0"))
+
+
+def umbrel_version(major, minor, patch, patch_version):
+    return f"{major}.{minor}.{patch}-patch.{patch_version}"
+
+
+def image_tag(major, minor, patch, patch_version):
+    return f"{major}.{minor}.{patch}-{patch_version}"
+
+
+def parse_umbrel_version(value):
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-patch\.(\d+))?", value)
+    if match:
+        return tuple(int(part) for part in match.groups(default="0"))
+
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)\.(\d+)", value)
+    if match:
+        return tuple(map(int, match.groups()))
+
+    raise ValueError(f"Unexpected Umbrel package version {value!r}")
 
 
 def next_package_version(current, upstream):
-    match = re.fullmatch(r"(\d+\.\d+\.\d+)(?:-patch\.|\.)(\d+)", current)
-    if not match:
-        raise ValueError(f"Unexpected Umbrel package version {current!r}")
-    current_upstream, revision = match.groups()
-    if parse_version(upstream) < parse_version(current_upstream):
-        raise ValueError(f"Refusing upstream version downgrade {current_upstream} -> {upstream}")
-    next_revision = int(revision) + 1 if upstream == current_upstream else 1
-    return f"{upstream}-patch.{next_revision}", f"{upstream}-{next_revision}"
+    current_version = parse_umbrel_version(current)
+    upstream_version = parse_version(upstream)
+    current_base = current_version[:3]
+    upstream_base = upstream_version[:3]
+    upstream_patch = upstream_version[3] or 1
+    if upstream_base < current_base:
+        raise ValueError(f"Refusing upstream version downgrade {current} -> {upstream}")
+    if upstream_base == current_base:
+        next_patch = max(current_version[3] + 1, upstream_patch)
+    else:
+        next_patch = upstream_patch
+    return umbrel_version(*upstream_base, next_patch), image_tag(*upstream_base, next_patch)
 
 
 def update_files(commit, upstream_version):
