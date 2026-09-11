@@ -10,7 +10,6 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 APP = ROOT / "koningkoffie-relay"
-BUILD_WORKFLOW = ROOT / ".github/workflows/build-relay.yml"
 REPO = "richardosseweijer/Relay-AV-Room-Control-"
 IMAGE = "ghcr.io/cschriel/relay-av-room-control"
 
@@ -63,7 +62,6 @@ def update_files(commit, upstream_version):
     dockerfile = dockerfile_path.read_text()
     compose = compose_path.read_text()
     manifest = manifest_path.read_text()
-    workflow = BUILD_WORKFLOW.read_text()
 
     current_commit = re.search(r"^ARG RELAY_COMMIT=([0-9a-f]{40})$", dockerfile, re.MULTILINE)
     current_version = re.search(r'^version: "([^"]+)"$', manifest, re.MULTILINE)
@@ -83,11 +81,6 @@ def update_files(commit, upstream_version):
         rf"^    image: {re.escape(IMAGE)}:\S+$",
         f"    image: {IMAGE}:{image_tag}",
         compose,
-    )
-    workflow = replace_once(
-        rf"^          tags: {re.escape(IMAGE)}:\S+$",
-        f"          tags: {IMAGE}:{image_tag}",
-        workflow,
     )
     manifest = replace_once(
         r'^version: "[^"]+"$',
@@ -109,7 +102,6 @@ def update_files(commit, upstream_version):
     dockerfile_path.write_text(dockerfile)
     compose_path.write_text(compose)
     manifest_path.write_text(manifest)
-    BUILD_WORKFLOW.write_text(workflow)
     print(f"Update {current_commit.group(1)[:7]} -> {commit[:7]} as {package_version}")
     return True
 

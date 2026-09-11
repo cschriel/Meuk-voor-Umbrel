@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - koningkoffie-relay/Dockerfile
+      - koningkoffie-relay/docker-compose.yml
       - .github/workflows/build-relay.yml
   workflow_dispatch:
 
@@ -34,12 +35,23 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Read the image tag from the Umbrel app
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$(sed -n 's/^    image: //p' koningkoffie-relay/docker-compose.yml)"
+          if [[ ! "$image" =~ ^ghcr\.io/cschriel/relay-av-room-control:(latest|[0-9]+\.[0-9]+\.[0-9]+-[0-9]+)$ ]]; then
+            echo "Invalid Relay image reference: $image" >&2
+            exit 1
+          fi
+          echo "name=$image" >> "$GITHUB_OUTPUT"
       - name: Build and publish amd64 and arm64 images
         uses: docker/build-push-action@v6
         with:
           context: koningkoffie-relay
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/cschriel/relay-av-room-control:latest
+          tags: ${{ steps.image.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
