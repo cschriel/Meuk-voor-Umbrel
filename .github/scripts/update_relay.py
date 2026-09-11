@@ -42,14 +42,14 @@ def parse_version(value):
 
 
 def next_package_version(current, upstream):
-    match = re.fullmatch(r"(\d+\.\d+\.\d+)\.(\d+)", current)
+    match = re.fullmatch(r"(\d+\.\d+\.\d+)(?:-patch\.|\.)(\d+)", current)
     if not match:
         raise ValueError(f"Unexpected Umbrel package version {current!r}")
     current_upstream, revision = match.groups()
     if parse_version(upstream) < parse_version(current_upstream):
         raise ValueError(f"Refusing upstream version downgrade {current_upstream} -> {upstream}")
     next_revision = int(revision) + 1 if upstream == current_upstream else 1
-    return f"{upstream}.{next_revision}", f"{upstream}-{next_revision}"
+    return f"{upstream}-patch.{next_revision}", f"{upstream}-{next_revision}"
 
 
 def update_files(commit, upstream_version):

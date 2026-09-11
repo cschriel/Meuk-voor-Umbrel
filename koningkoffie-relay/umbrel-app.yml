@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-relay
 category: automation
 name: Relay
-version: "0.8.1.1"
+version: "0.8.1-patch.1"
 tagline: Control AV devices on your local network
 icon: https://raw.githubusercontent.com/richardosseweijer/Relay-AV-Room-Control-/7182ecfc4f1a8527b4370cbe3ed2e725369c4ada/public/favicon.svg
 description: >-
