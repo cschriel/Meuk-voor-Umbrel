@@ -2,9 +2,9 @@ manifestVersion: 1.3
 id: koningkoffie-relay
 category: automation
 name: Relay
-version: "0.8.2-patch.2"
+version: "0.8.2-patch.4"
 tagline: Control AV devices on your local network
-icon: https://raw.githubusercontent.com/richardosseweijer/Relay-AV-Room-Control-/673ff3267996f4cb988da5ab8de203e2baac6a70/public/favicon.svg
+icon: https://raw.githubusercontent.com/richardosseweijer/Relay-AV-Room-Control-/a1f7e12ebfc33d00834ccd848451952324ae17a6/public/favicon.svg
 description: >-
   Relay is a room controller for displays, projectors, receivers, lights, and
   other AV devices on your local network. Build a touch-friendly control panel,
@@ -19,7 +19,7 @@ description: >-
   GPIO, I2C, CEC, IR, and serial hardware is not enabled in this release. Install
   updates through the Umbrel app store; Relay's in-app GitHub updater is not
   available inside the container.
-releaseNotes: "Updated Relay 0.8.2.1 to upstream main commit 673ff32."
+releaseNotes: "Updated Relay 0.8.2.4 to upstream main commit a1f7e12."
 developer: Richard Osseweijer
 website: https://github.com/richardosseweijer/Relay-AV-Room-Control-
 dependencies: []
