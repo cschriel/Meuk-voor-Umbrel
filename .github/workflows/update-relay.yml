@@ -49,10 +49,10 @@ jobs:
             exit 0
           fi
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@://github.com'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'chore: update Relay from upstream main'
           
-          # Explicitly inject your PAT into the push URL using native environment variables
+          # Fixed the URL structure and added the missing $ for the variable
           git remote set-url origin "https://x-access-token:${SYNC_TOKEN}@://github.com{GITHUB_REPOSITORY}.git"
           
           git push origin "HEAD:${DEFAULT_BRANCH}"
