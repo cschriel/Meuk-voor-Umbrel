@@ -24,7 +24,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
       - name: Check upstream main
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: python3 .github/scripts/update_relay.py
       - name: Commit and publish the update
         id: publish
@@ -51,6 +51,6 @@ jobs:
       - name: Build the updated image
         if: steps.publish.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: gh workflow run build-relay.yml --ref "$DEFAULT_BRANCH"

@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
       - name: Check for a stable release and verify its image
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: python3 .github/scripts/update_reactive_resume.py
       - name: Commit and publish the update
         env:
