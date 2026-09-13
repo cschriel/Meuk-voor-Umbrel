@@ -1,0 +1,42 @@
+manifestVersion: 1.3
+id: koningkoffie-tdarr
+category: media
+name: Tdarr
+version: "2.81.01"
+tagline: Automate media transcoding and library health checks
+icon: https://raw.githubusercontent.com/HaveAGitGat/Tdarr/master/assets/tdarr-logo.svg
+description: >-
+  Tdarr automates media transcoding and health checks. Build workflows to
+  standardize codecs, save storage space, and check your media library for
+  problems using configurable plugins and flows.
+
+
+  This installation includes a Tdarr server and an internal node named
+  Umbrel. Open the app through Umbrel, add a library with a source folder under
+  /media, and set its transcode cache to /temp. The /media folder maps to
+  Umbrel's shared downloads folder. Configuration, the database, logs, and
+  transcode cache are stored on your Umbrel.
+
+
+  Review your library's plugins or flow before enabling processing: Tdarr can
+  replace original media files. Allow enough free disk space for the cache.
+
+
+  Intel GPU access and one GPU transcode worker are enabled for Umbrel Home.
+  Select an Intel Quick Sync (QSV) or VAAPI encoding plugin or flow in your
+  library to use hardware encoding. CPU workers remain available for software
+  tasks and health checks. This package requires a /dev/dri device on the host;
+  external nodes require additional configuration.
+releaseNotes: "Initial Umbrel release with Tdarr 2.81.01, Intel GPU passthrough for Umbrel Home, an internal CPU/GPU node, and shared downloads access."
+developer: HaveAGitGat
+website: https://tdarr.io
+dependencies: []
+repo: https://github.com/HaveAGitGat/Tdarr
+support: https://github.com/HaveAGitGat/Tdarr/issues
+port: 8265
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: cschriel
+submission: https://github.com/cschriel/Meuk-voor-Umbrel

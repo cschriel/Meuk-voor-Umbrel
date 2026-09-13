@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: koningkoffie-tdarr_server_1
+      APP_PORT: 8265
+
+  server:
+    image: ghcr.io/haveagitgat/tdarr:2.81.01@sha256:71360670ac0c39e1bb8daf2b0c5c9ebb92b5d41e79c54128f2cea5bbdc32ddf2
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      UMASK_SET: "002"
+      TZ: Europe/Amsterdam
+      serverIP: "0.0.0.0"
+      serverPort: "8266"
+      webUIPort: "8265"
+      serverURL: http://127.0.0.1:8266
+      internalNode: "true"
+      inContainer: "true"
+      nodeName: Umbrel
+      ffmpegVersion: "7"
+      # Access is authenticated by Umbrel's app proxy.
+      auth: "false"
+      openBrowser: "false"
+      transcodecpuWorkers: "1"
+      healthcheckcpuWorkers: "1"
+      transcodegpuWorkers: "1"
+      healthcheckgpuWorkers: "0"
+    # Tdarr's startup script adds its user to the device's owning groups.
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - ${APP_DATA_DIR}/data/server:/app/server
+      - ${APP_DATA_DIR}/data/configs:/app/configs
+      - ${APP_DATA_DIR}/data/logs:/app/logs
+      - ${APP_DATA_DIR}/data/transcode-cache:/temp
+      - ${UMBREL_ROOT}/data/storage/downloads:/media
