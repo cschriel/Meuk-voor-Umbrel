@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-checkmate
 category: networking
 name: Checkmate
-version: "3.12.0"
+version: "3.12.0.1"
 tagline: Monitor uptime, response times, and incidents
 icon: https://raw.githubusercontent.com/bluewave-labs/Checkmate/v3.12.0/client/public/checkmate_favicon.svg
 description: >-
@@ -43,7 +43,7 @@ description: >-
 
   MongoDB requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU.
   Older hardware, including Raspberry Pi 4, is not supported by this package.
-releaseNotes: "Initial Umbrel release with Checkmate 3.12.0, Capture 1.4.0 for host hardware monitoring, Docker socket access with automatic group permissions, persistent MongoDB storage, and automatically generated secrets."
+releaseNotes: "Fix installation on Umbrel 1.7.x by using a compatible host filesystem mount format. Checkmate remains at 3.12.0 and Capture at 1.4.0."
 developer: BlueWave Labs
 website: https://checkmate.so
 dependencies: []

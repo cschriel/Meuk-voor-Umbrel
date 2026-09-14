@@ -64,12 +64,8 @@ services:
       - /sys:/sys:ro
       - /etc/os-release:/etc/os-release:ro
       # Include host filesystems and propagate subsequently mounted disks.
-      - type: bind
-        source: /
-        target: /host/root
-        read_only: true
-        bind:
-          propagation: rslave
+      # Umbrel 1.7.x requires string-form mounts in its installer.
+      - /:/host/root:ro,rslave
 
   db:
     image: mongo:8.0@sha256:6c108efd306c66a7eb58e0b4042c2fcffb4a4980dac111039c59fd714db6a69b
