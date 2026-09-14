@@ -1,0 +1,51 @@
+name: Update Checkmate and Capture
+
+on:
+  schedule:
+    - cron: '43 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-checkmate
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Test updater
+        run: python3 -m unittest discover -s .github/scripts -p 'test_checkmate*.py'
+      - name: Prepare stable release updates
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+        run: python3 .github/scripts/update_checkmate.py
+      - name: Validate Compose and Umbrel installer compatibility
+        run: |
+          ruby .github/scripts/validate_checkmate.rb
+          git diff --check
+      - name: Open or update review pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+          branch: automation/checkmate-updates
+          delete-branch: true
+          add-paths: |
+            koningkoffie-checkmate/docker-compose.yml
+            koningkoffie-checkmate/umbrel-app.yml
+            README.md
+          commit-message: 'chore: update Checkmate and Capture'
+          title: 'chore: update Checkmate and Capture'
+          body: |
+            Updates stable Checkmate and/or Capture releases. See the manifest release notes for upstream links and the diff for exact versions and image digests.
+
+            Verified registry digests and availability of linux/amd64 and linux/arm64 images. Compose validation, required-variable checks, and Umbrel 1.7.x volume compatibility checks passed before opening this PR.
+
+            Manual review required: check upstream deployment changes and test startup, Docker monitoring, and Capture metrics on Umbrel. These checks do not run the containers. MongoDB remains unchanged.

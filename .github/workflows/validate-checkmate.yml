@@ -1,0 +1,29 @@
+name: Validate Checkmate package
+
+on:
+  pull_request:
+    paths:
+      - 'koningkoffie-checkmate/**'
+      - '.github/scripts/*checkmate*'
+      - '.github/workflows/*checkmate*'
+      - 'README.md'
+  push:
+    branches: [master]
+    paths:
+      - 'koningkoffie-checkmate/**'
+      - '.github/scripts/*checkmate*'
+      - '.github/workflows/*checkmate*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 -m unittest discover -s .github/scripts -p 'test_checkmate*.py'
+      - run: ruby .github/scripts/validate_checkmate.rb
+      - run: git diff --check

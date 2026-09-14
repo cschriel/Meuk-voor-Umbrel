@@ -44,12 +44,16 @@ The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, wh
 ## Enterprise-grade ambition
 
 - **Self-hosted:** because apparently I needed to be responsible for another thing.
-- **Automated Reactive Resume updates:** yesterday's decisions, delivered to tomorrow's problems. Tdarr and Checkmate are pinned to verified images and updated manually in this store.
+- **Automated updates:** yesterday's decisions, delivered to tomorrow's problems. Reactive Resume updates automatically; Checkmate and Capture updates arrive as pull requests for review. Tdarr is updated manually.
 - **Community-driven:** I have occasionally discussed it with myself.
 - **Coffee-powered:** the only dependency with a reliable upgrade cycle.
 - **A focused roadmap:** get this working, then develop an entirely unrelated obsession.
 
 ## Support
+
+The **Update Checkmate and Capture** GitHub Action checks stable upstream releases daily at 05:43 UTC and can also be run manually from Actions. It verifies image digests and availability for both amd64 and arm64, then validates Compose and Umbrel installer compatibility before opening or updating one review PR. Capture-only updates increment the Umbrel package revision. MongoDB stays pinned and is updated manually.
+
+The workflow uses the existing `SYNC_TOKEN` secret when available (it needs repository contents and pull-request write access), otherwise `GITHUB_TOKEN`. For the fallback, enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. The workflow never approves or merges its PR. Validation also runs before PR creation, so it does not depend on whether a bot-created PR triggers another workflow. Review upstream configuration changes and test on Umbrel before merging.
 
 There is no support department. There is a person with a browser, several open tabs, and a growing suspicion that this could have been simpler.
 
