@@ -1,0 +1,89 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: koningkoffie-checkmate_server_1
+      APP_PORT: 52345
+      # Checkmate handles authentication with its own accounts.
+      PROXY_AUTH_ADD: "false"
+
+  server:
+    image: ghcr.io/bluewave-labs/checkmate:v3.12.0@sha256:bccfe26411a52590ec67e9c6a890a66c154e10b89a7598c6ae00262f3a88b3de
+    init: true
+    restart: on-failure
+    stop_grace_period: 60s
+    # Keep the image's non-root user and grant the host socket's group access.
+    group_add:
+      - ${APP_KONINGKOFFIE_CHECKMATE_DOCKER_GID:?Unable to detect Docker socket group}
+    volumes:
+      # A read-only bind mount does not restrict Docker API operations.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      TZ: Europe/Amsterdam
+      CLIENT_HOST: http://${APP_KONINGKOFFIE_CHECKMATE_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}
+      DB_CONNECTION_STRING: mongodb://checkmate:${APP_KONINGKOFFIE_CHECKMATE_MONGO_PASSWORD:?Missing MongoDB password}@koningkoffie-checkmate_db_1:27017/uptime_db?authSource=admin
+      JWT_SECRET: ${APP_KONINGKOFFIE_CHECKMATE_JWT_SECRET:?Missing JWT secret}
+      ENCRYPTION_KEY: ${APP_KONINGKOFFIE_CHECKMATE_ENCRYPTION_KEY:?Missing encryption key}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:52346/livez',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 3s
+      start_period: 60s
+      retries: 3
+
+  capture:
+    image: ghcr.io/bluewave-labs/capture:v1.4.0@sha256:c4917c572b12d4068b5987494132da728363591ec9227a116ef07cd77222292f
+    restart: on-failure
+    # Capture's network counters must use Umbrel's network namespace.
+    # The authenticated API listens on the host's port 59232.
+    network_mode: host
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      API_SECRET: ${APP_PASSWORD:?Missing Umbrel-generated Capture API key}
+      PORT: "59232"
+      GIN_MODE: release
+      HOST_PROC: /host/proc
+      HOST_SYS: /sys
+      HOST_ETC: /host/root/etc
+      HOST_DEV: /host/root/dev
+      # Use paths visible inside Capture for disk usage/statfs calls.
+      # Host mountinfo would contain unprefixed paths outside its filesystem.
+      HOST_PROC_MOUNTINFO: /proc/self/mountinfo
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/sys:ro
+      - /etc/os-release:/etc/os-release:ro
+      # Include host filesystems and propagate subsequently mounted disks.
+      - type: bind
+        source: /
+        target: /host/root
+        read_only: true
+        bind:
+          propagation: rslave
+
+  db:
+    image: mongo:8.0@sha256:6c108efd306c66a7eb58e0b4042c2fcffb4a4980dac111039c59fd714db6a69b
+    restart: on-failure
+    command: ["mongod", "--quiet", "--bind_ip_all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: checkmate
+      MONGO_INITDB_ROOT_PASSWORD: ${APP_KONINGKOFFIE_CHECKMATE_MONGO_PASSWORD:?Missing MongoDB password}
+    volumes:
+      - ${APP_DATA_DIR}/data/db:/data/db
+      - ${APP_DATA_DIR}/data/configdb:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.getSiblingDB('admin').auth(process.env.MONGO_INITDB_ROOT_USERNAME, process.env.MONGO_INITDB_ROOT_PASSWORD); if (db.adminCommand('ping').ok !== 1) quit(1)"]
+      interval: 5s
+      timeout: 30s
+      start_period: 30s
+      retries: 30

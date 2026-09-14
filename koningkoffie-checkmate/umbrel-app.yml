@@ -1,0 +1,58 @@
+manifestVersion: 1.3
+id: koningkoffie-checkmate
+category: networking
+name: Checkmate
+version: "3.12.0"
+tagline: Monitor uptime, response times, and incidents
+icon: https://raw.githubusercontent.com/bluewave-labs/Checkmate/v3.12.0/client/public/checkmate_favicon.svg
+description: >-
+  Checkmate monitors service uptime, response times, and incidents with
+  dashboards, notifications, and status pages. Keep an eye on your websites
+  and services from your Umbrel.
+
+
+  Open the app through Umbrel and create your administrator account on first
+  launch. Use your Umbrel's local IPv4 address on port 52345. Accounts,
+  settings, and monitoring history are stored in a persistent MongoDB database.
+
+
+  To monitor Umbrel's Docker containers, add a Docker monitor with host URL
+  unix:///var/run/docker.sock. The host socket is mounted and its group
+  permissions are detected automatically. Docker socket access grants
+  host-level control, even though the socket is mounted read-only.
+
+
+  Capture 1.4.0 is included for Umbrel hardware monitoring. In Infrastructure,
+  add a monitor with endpoint http://UMBREL-IP:59232/api/v1/metrics, replacing
+  UMBREL-IP with your Umbrel's local IPv4 address. For the authorization secret,
+  use the app password shown by Umbrel, without a Bearer prefix. This password
+  is Capture's API key; create your own Checkmate login on first launch.
+
+
+  Capture reads host CPU, memory, disk, and network metrics using host
+  networking and read-only host filesystem mounts. Temperature readings
+  depend on available sensors. Its authenticated API listens on port 59232.
+  S.M.A.R.T. disk health collection is not included in this configuration.
+
+
+  Email delivery requires SMTP settings in Checkmate.
+  Checkmate handles its own login; no additional Umbrel login
+  is required. Public status pages are accessible to anyone who can reach
+  the app on your network.
+
+
+  MongoDB requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU.
+  Older hardware, including Raspberry Pi 4, is not supported by this package.
+releaseNotes: "Initial Umbrel release with Checkmate 3.12.0, Capture 1.4.0 for host hardware monitoring, Docker socket access with automatic group permissions, persistent MongoDB storage, and automatically generated secrets."
+developer: BlueWave Labs
+website: https://checkmate.so
+dependencies: []
+repo: https://github.com/bluewave-labs/Checkmate
+support: https://github.com/bluewave-labs/Checkmate/issues
+port: 52345
+gallery: []
+path: ""
+defaultUsername: ""
+deterministicPassword: true
+submitter: cschriel
+submission: https://github.com/cschriel/Meuk-voor-Umbrel
