@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Run on Umbrel with sudo bash diagnostics.sh. Does not print API keys.
+set -euo pipefail
+capture=koningkoffie-checkmate_capture_1
+server=koningkoffie-checkmate_server_1
+printf 'Container state:\n'
+for container in "$server" "$capture" koningkoffie-checkmate_db_1 koningkoffie-checkmate_docker_proxy_1; do
+  docker inspect --format '{{.Name}}: {{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}} network={{.HostConfig.NetworkMode}}' "$container"
+done
+key="$(docker inspect "$capture" | jq -er '.[0].Config.Env[] | select(startswith("API_SECRET=")) | ltrimstr("API_SECRET=")')"
+trap 'unset key' EXIT
+for sample in 1 2; do
+  printf '\nCapture network sample %s:\n' "$sample"
+  # Pass the key over stdin, rather than exposing it in curl's argument list.
+  printf 'header = "Authorization: Bearer %s"\n' "$key" |
+    curl --config - --silent --show-error --fail --connect-timeout 3 --max-time 15 http://127.0.0.1:59232/api/v1/metrics/net |
+    jq '{interfaces: .data, errors: .errors}'
+  if [[ "$sample" == 1 ]]; then sleep 5; fi
+done
+printf '\nHost network counters:\n'
+cat /proc/net/dev
+printf '\nFiltered Docker API and Checkmate health:\n'
+docker exec "$server" node -e "require('http').get({socketPath:'/var/run/docker.sock',path:'/_ping'},r=>{console.log('Docker proxy HTTP '+r.statusCode);if(r.statusCode!==200)process.exitCode=1}).on('error',()=>process.exit(1))"

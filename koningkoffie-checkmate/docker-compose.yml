@@ -12,34 +12,93 @@ services:
     image: ghcr.io/bluewave-labs/checkmate:v3.12.0@sha256:bccfe26411a52590ec67e9c6a890a66c154e10b89a7598c6ae00262f3a88b3de
     init: true
     restart: on-failure
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     stop_grace_period: 60s
-    # Keep the image's non-root user and grant the host socket's group access.
-    group_add:
-      - ${APP_KONINGKOFFIE_CHECKMATE_DOCKER_GID:?Unable to detect Docker socket group}
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      # A read-only bind mount does not restrict Docker API operations.
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Keep existing monitor URLs working; this socket is the filtered proxy.
+      - docker-monitor-socket:/var/run:ro,nocopy
     environment:
       NODE_ENV: production
       LOG_LEVEL: info
       TZ: Europe/Amsterdam
-      CLIENT_HOST: http://${APP_KONINGKOFFIE_CHECKMATE_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}
-      DB_CONNECTION_STRING: mongodb://checkmate:${APP_KONINGKOFFIE_CHECKMATE_MONGO_PASSWORD:?Missing MongoDB password}@koningkoffie-checkmate_db_1:27017/uptime_db?authSource=admin
+      CLIENT_HOST: ${APP_KONINGKOFFIE_CHECKMATE_PUBLIC_URL:-http://${APP_KONINGKOFFIE_CHECKMATE_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}}
+      DB_CONNECTION_STRING: mongodb://checkmate_app:${APP_KONINGKOFFIE_CHECKMATE_DB_PASSWORD:?Missing application database password}@koningkoffie-checkmate_db_1:27017/uptime_db?authSource=uptime_db
       JWT_SECRET: ${APP_KONINGKOFFIE_CHECKMATE_JWT_SECRET:?Missing JWT secret}
       ENCRYPTION_KEY: ${APP_KONINGKOFFIE_CHECKMATE_ENCRYPTION_KEY:?Missing encryption key}
     depends_on:
       db:
         condition: service_healthy
+      db_init:
+        condition: service_completed_successfully
+      docker_proxy:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:52346/livez',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "Promise.all(['http://127.0.0.1:52346/readyz','http://127.0.0.1:52345/api/v1/health'].map(u=>fetch(u).then(r=>{if(!r.ok)throw Error('unhealthy')}))).then(()=>process.exit(0)).catch(()=>process.exit(1))"]
       interval: 15s
       timeout: 3s
       start_period: 60s
       retries: 3
 
+  docker_proxy:
+    image: node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    network_mode: none
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    group_add:
+      - ${APP_KONINGKOFFIE_CHECKMATE_DOCKER_GID:?Unable to detect Docker socket group}
+    command: ["node", "/proxy.js"]
+    volumes:
+      - ${APP_DATA_DIR}/docker-proxy.js:/proxy.js:ro
+      - /var/run/docker.sock:/upstream.sock:ro
+      # The image's /home/node ownership initializes this volume for uid 1000.
+      - docker-monitor-socket:/home/node
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get({socketPath:'/home/node/docker.sock',path:'/_ping'},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  db_init:
+    image: mongo:8.0@sha256:6c108efd306c66a7eb58e0b4042c2fcffb4a4980dac111039c59fd714db6a69b
+    restart: "no"
+    entrypoint: ["mongosh", "--host", "koningkoffie-checkmate_db_1", "--quiet", "/init-db.js"]
+    environment:
+      MONGO_ROOT_PASSWORD: ${APP_KONINGKOFFIE_CHECKMATE_MONGO_PASSWORD:?Missing MongoDB password}
+      MONGO_APP_PASSWORD: ${APP_KONINGKOFFIE_CHECKMATE_DB_PASSWORD:?Missing application database password}
+    volumes:
+      - ${APP_DATA_DIR}/init-db.js:/init-db.js:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
   capture:
     image: ghcr.io/bluewave-labs/capture:v1.4.0@sha256:c4917c572b12d4068b5987494132da728363591ec9227a116ef07cd77222292f
     restart: on-failure
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # Capture's network counters must use Umbrel's network namespace.
     # The authenticated API listens on the host's port 59232.
     network_mode: host
@@ -70,6 +129,11 @@ services:
   db:
     image: mongo:8.0@sha256:6c108efd306c66a7eb58e0b4042c2fcffb4a4980dac111039c59fd714db6a69b
     restart: on-failure
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: ["mongod", "--quiet", "--bind_ip_all"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: checkmate
@@ -83,3 +147,6 @@ services:
       timeout: 30s
       start_period: 30s
       retries: 30
+
+volumes:
+  docker-monitor-socket:

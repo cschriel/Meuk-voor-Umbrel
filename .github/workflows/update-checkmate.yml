@@ -16,23 +16,27 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.repository.default_branch }}
       - name: Test updater
         run: python3 -m unittest discover -s .github/scripts -p 'test_checkmate*.py'
       - name: Prepare stable release updates
         env:
-          GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/update_checkmate.py
       - name: Validate Compose and Umbrel installer compatibility
         run: |
           ruby .github/scripts/validate_checkmate.rb
           git diff --check
+      - name: Runtime smoke test
+        run: |
+          node --test .github/scripts/test-checkmate-proxy.cjs
+          python3 .github/scripts/checkmate-smoke.py
       - name: Open or update review pull request
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           token: ${{ secrets.SYNC_TOKEN || github.token }}
           branch: automation/checkmate-updates
@@ -48,4 +52,4 @@ jobs:
 
             Verified registry digests and availability of linux/amd64 and linux/arm64 images. Compose validation, required-variable checks, and Umbrel 1.7.x volume compatibility checks passed before opening this PR.
 
-            Manual review required: check upstream deployment changes and test startup, Docker monitoring, and Capture metrics on Umbrel. These checks do not run the containers. MongoDB remains unchanged.
+            Manual review required: check upstream deployment changes and test startup, Docker monitoring, and Capture metrics on Umbrel. The disposable runtime test covers startup, existing-data migration, restricted database permissions, filtered Docker API calls, and Capture authentication. Physical host metrics still need verification on Umbrel. MongoDB remains unchanged.
