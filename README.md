@@ -28,7 +28,7 @@ Uptime monitoring, response-time charts, and incident tracking. So now there's a
 
 Open Checkmate through Umbrel on port `52345` and create your administrator account on first launch. Use your Umbrel's local IPv4 address; the package detects it automatically for notification links. Add your first website or service monitor using an address reachable from Umbrel. Accounts, settings, and monitoring history persist in MongoDB, and authentication and encryption secrets are derived automatically per installation.
 
-To monitor Umbrel's Docker containers, add a **Docker** monitor with host URL `unix:///var/run/docker.sock`. The package mounts the host socket and automatically adds its numeric group ID to Checkmate's supplementary groups so its non-root user can connect. This monitor covers all containers on the host. As explained in [Checkmate's installation guide](https://checkmate.so/docs/getting-started/installation), socket access grants host-level control; the read-only mount does not restrict Docker API operations.
+To monitor Umbrel's Docker containers, add a **Docker** monitor with host URL `unix:///var/run/docker.sock`. Existing monitor URLs continue to work. This now connects to a local filtering proxy: container listing, statistics, limited inspection, and the most recent 500 log lines are allowed; Docker mutations, file archives, and other API endpoints are denied. Inspection responses omit environment variables. The proxy alone holds the host socket, runs without a TCP network, and shares its filtered socket with Checkmate. Container logs can still contain sensitive application output; enable them only where useful.
 
 [Capture 1.4.0](https://github.com/bluewave-labs/capture/releases/tag/v1.4.0) is included for Umbrel hardware monitoring. In Checkmate's **Infrastructure** section, add a monitor named **Umbrel**:
 
@@ -39,7 +39,7 @@ Capture starts with the app and uses host networking for host interface counters
 
 Configure SMTP in Checkmate if you want email delivery. Checkmate handles its own login, with the extra Umbrel login disabled. Public status pages are accessible without an Umbrel account to anyone who can reach the app on your network.
 
-The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, which excludes Raspberry Pi 4. See [MongoDB's hardware requirements](https://www.mongodb.com/docs/manual/administration/production-notes/). Checkmate is pinned to [v3.12.0](https://github.com/bluewave-labs/Checkmate/releases/tag/v3.12.0), with all three container images pinned by digest.
+The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, which excludes Raspberry Pi 4. See [MongoDB's hardware requirements](https://www.mongodb.com/docs/manual/administration/production-notes/). Checkmate is pinned to [v3.12.0](https://github.com/bluewave-labs/Checkmate/releases/tag/v3.12.0), with all container images pinned by digest. The Node image used by the Docker filter and MongoDB are updated manually.
 
 ## Enterprise-grade ambition
 
@@ -53,7 +53,7 @@ The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, wh
 
 The **Update Checkmate and Capture** GitHub Action checks stable upstream releases daily at 05:43 UTC and can also be run manually from Actions. It verifies image digests and availability for both amd64 and arm64, then validates Compose and Umbrel installer compatibility before opening or updating one review PR. Capture-only updates increment the Umbrel package revision. MongoDB stays pinned and is updated manually.
 
-The workflow uses the existing `SYNC_TOKEN` secret when available (it needs repository contents and pull-request write access), otherwise `GITHUB_TOKEN`. For the fallback, enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. The workflow never approves or merges its PR. Validation also runs before PR creation, so it does not depend on whether a bot-created PR triggers another workflow. Review upstream configuration changes and test on Umbrel before merging.
+The workflow uses the existing `SYNC_TOKEN` secret when available (it needs repository contents and pull-request write access), otherwise `GITHUB_TOKEN`. For the fallback, enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. The workflow never approves or merges its PR. Validation also runs before PR creation, so it does not depend on whether a bot-created PR triggers another workflow. The CI smoke test starts a disposable stack with test credentials and a fake Docker API, checks data-preserving database migration and restricted permissions, exercises the real Docker client through the filter, and checks Capture authentication. Review upstream configuration changes and verify physical host metrics on Umbrel before merging.
 
 There is no support department. There is a person with a browser, several open tabs, and a growing suspicion that this could have been simpler.
 

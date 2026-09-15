@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-checkmate
 category: networking
 name: Checkmate
-version: "3.12.0.1"
+version: "3.12.0.2"
 tagline: Monitor uptime, response times, and incidents
 icon: https://raw.githubusercontent.com/bluewave-labs/Checkmate/v3.12.0/client/public/checkmate_favicon.svg
 description: >-
@@ -17,9 +17,10 @@ description: >-
 
 
   To monitor Umbrel's Docker containers, add a Docker monitor with host URL
-  unix:///var/run/docker.sock. The host socket is mounted and its group
-  permissions are detected automatically. Docker socket access grants
-  host-level control, even though the socket is mounted read-only.
+  unix:///var/run/docker.sock. The existing URL connects through a local filtered socket that allows
+  container monitoring and bounded logs, but blocks Docker mutations and
+  arbitrary file reads. Container environment variables are removed from
+  inspection responses.
 
 
   Capture 1.4.0 is included for Umbrel hardware monitoring. In Infrastructure,
@@ -43,7 +44,7 @@ description: >-
 
   MongoDB requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU.
   Older hardware, including Raspberry Pi 4, is not supported by this package.
-releaseNotes: "Fix installation on Umbrel 1.7.x by using a compatible host filesystem mount format. Checkmate remains at 3.12.0 and Capture at 1.4.0."
+releaseNotes: "Harden secret generation, filter local Docker API access, migrate Checkmate to a database-scoped MongoDB account, improve readiness checks, and bound container logs. Existing monitor URLs, data, and encryption keys are preserved. Checkmate remains at 3.12.0 and Capture at 1.4.0."
 developer: BlueWave Labs
 website: https://checkmate.so
 dependencies: []

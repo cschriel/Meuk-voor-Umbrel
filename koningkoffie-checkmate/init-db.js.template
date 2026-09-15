@@ -1,0 +1,11 @@
+// Runs after MongoDB is healthy, for both new and existing installations.
+// Keep the original root account for administration; never give it to Checkmate.
+const admin = db.getSiblingDB('admin');
+if (admin.auth('checkmate', process.env.MONGO_ROOT_PASSWORD).ok !== 1) throw Error('Admin authentication failed');
+const app = db.getSiblingDB('uptime_db');
+const user = 'checkmate_app';
+const options = { pwd: process.env.MONGO_APP_PASSWORD, roles: [{ role: 'readWrite', db: 'uptime_db' }] };
+if (!options.pwd) throw Error('Missing application password');
+if (app.getUser(user)) app.updateUser(user, options);
+else app.createUser({ user, ...options });
+print('Checkmate database user ready');

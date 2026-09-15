@@ -1,0 +1,86 @@
+// This file is deployed by Umbrel's template mechanism. No template substitutions.
+// A Unix-only, read-only Docker API subset for Checkmate 3.12's DockerProvider.
+const http = require('node:http');
+const fs = require('node:fs');
+const socket = process.env.PROXY_SOCKET || '/home/node/docker.sock';
+const upstreamSocket = process.env.DOCKER_SOCKET || '/upstream.sock';
+let active = 0;
+
+function route(method, raw) {
+  if (method !== 'GET' || typeof raw !== 'string') return null;
+  const path = raw.split('?')[0];
+  const prefix = path.match(/^\/v[0-9]+\.[0-9]+(?=\/)/)?.[0] || '';
+  const plain = path.slice(prefix.length);
+  if (plain === '/_ping') return { path: prefix + '/_ping', kind: 'ping' };
+  if (plain === '/containers/json') return { path: prefix + '/containers/json?all=true', kind: 'list' };
+  const match = plain.match(/^\/containers\/([a-f0-9]{12,64})\/(json|stats|logs)$/);
+  if (!match) return null;
+  const kind = match[2];
+  const query = kind === 'stats' ? '?stream=false' : kind === 'logs'
+    ? '?follow=false&stdout=true&stderr=true&timestamps=true&tail=500' : '';
+  return { path: prefix + plain + query, kind };
+}
+
+function redact(kind, body) {
+  if (kind === 'list') return JSON.stringify(JSON.parse(body).map(c => ({
+    Id: c.Id, Names: c.Names, Image: c.Image, State: c.State, Status: c.Status
+  })));
+  if (kind === 'json') {
+    const c = JSON.parse(body);
+    return JSON.stringify({ Id: c.Id, RestartCount: c.RestartCount,
+      State: { StartedAt: c.State?.StartedAt, Health: { Status: c.State?.Health?.Status } },
+      NetworkSettings: { Ports: c.NetworkSettings?.Ports }, Mounts: c.Mounts });
+  }
+  return body;
+}
+
+function start() {
+  try { fs.unlinkSync(socket); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  const server = http.createServer((req, res) => {
+    const selected = route(req.method, req.url);
+    if (!selected || req.headers['transfer-encoding'] || Number(req.headers['content-length'] || 0) !== 0) {
+      res.writeHead(403, { 'Content-Type': 'application/json', Connection: 'close' });
+      return res.end('{"message":"Docker operation not permitted"}');
+    }
+    if (active >= 32) { res.writeHead(503); return res.end(); }
+    active++;
+    let released = false;
+    const release = () => { if (!released) { active--; released = true; } };
+    const fail = () => { if (!res.headersSent) res.writeHead(502); res.end(); };
+    const upstream = http.request({ socketPath: upstreamSocket, path: selected.path, method: 'GET',
+      headers: { Host: 'docker', Connection: 'close' }, timeout: 10000 }, response => {
+      let size = 0;
+      const chunks = [];
+      response.on('data', chunk => {
+        size += chunk.length;
+        if (size > 16 * 1024 * 1024) { upstream.destroy(); fail(); return; }
+        chunks.push(chunk);
+      });
+      response.on('error', fail);
+      response.on('end', () => {
+        if (res.writableEnded) return;
+        try {
+          const raw = Buffer.concat(chunks);
+          const body = response.statusCode === 200 ? redact(selected.kind, raw) : raw;
+          res.writeHead(response.statusCode, { 'Content-Type': response.headers['content-type'] || 'application/octet-stream' });
+          res.end(body);
+        } catch { fail(); }
+      });
+    });
+    upstream.on('timeout', () => upstream.destroy());
+    upstream.on('error', fail);
+    res.on('close', () => { upstream.destroy(); release(); });
+    upstream.end();
+  });
+  server.headersTimeout = 5000;
+  server.requestTimeout = 5000;
+  server.keepAliveTimeout = 1000;
+  server.on('upgrade', (_req, connection) => connection.destroy());
+  server.listen(socket, () => { fs.chmodSync(socket, 0o600); console.log('Docker monitoring socket ready'); });
+  const stop = () => server.close(() => process.exit(0));
+  process.on('SIGTERM', stop);
+  process.on('SIGINT', stop);
+  return server;
+}
+module.exports = { route, redact, start };
+if (require.main === module) start();
