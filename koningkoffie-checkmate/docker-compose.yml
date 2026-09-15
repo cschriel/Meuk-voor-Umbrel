@@ -24,7 +24,7 @@ services:
       - no-new-privileges:true
     volumes:
       # Keep existing monitor URLs working; this socket is the filtered proxy.
-      - docker-monitor-socket:/var/run:ro
+      - docker-monitor-socket:/var/run:ro,nocopy
     environment:
       NODE_ENV: production
       LOG_LEVEL: info

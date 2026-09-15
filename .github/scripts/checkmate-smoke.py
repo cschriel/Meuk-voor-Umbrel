@@ -50,6 +50,11 @@ with tempfile.TemporaryDirectory(prefix='checkmate-smoke-') as directory:
     # Use isolated Compose DNS while leaving production configuration untouched.
     services['db_init']['entrypoint'] = ['mongosh', '--host', 'db', '--quiet', '/init-db.js']
     services['server']['environment']['DB_CONNECTION_STRING'] = services['server']['environment']['DB_CONNECTION_STRING'].replace('koningkoffie-checkmate_db_1', 'db')
+    # Disposable database volumes are removed by Docker, regardless of MongoDB UID.
+    services['db']['volumes'] = [
+        {'type': 'volume', 'source': 'smoke-db', 'target': '/data/db'},
+        {'type': 'volume', 'source': 'smoke-configdb', 'target': '/data/configdb'}]
+    rendered['volumes'].update({'smoke-db': {}, 'smoke-configdb': {}})
     # The only API the proxy may touch is this fixture, never the runner daemon.
     fixture = work / 'fake-docker.cjs'
     fixture.write_text("""
@@ -96,7 +101,7 @@ http.createServer((req,res)=>{
         mongo("db.getSiblingDB('admin').auth('checkmate',process.env.MONGO_INITDB_ROOT_PASSWORD); db.getSiblingDB('uptime_db').migration_probe.insertOne({preserved:true})")
         compose('up', '-d')
         wait_for(lambda: 'healthy' == run('docker', 'inspect', '--format', '{{.State.Health.Status}}', compose('ps', '-q', 'server').strip()).strip(), 'Checkmate readiness')
-        mongo("const a=db.getSiblingDB('uptime_db'); if(a.auth('checkmate_app','test-app-password').ok!==1)quit(1); if(!a.migration_probe.findOne({preserved:true}))quit(2); a.migration_probe.insertOne({appWrite:true}); let denied=false; try { db.getSiblingDB('admin').getUsers(); }catch(e){denied=e.code===13;} if(!denied)quit(3);")
+        mongo("const a=db.getSiblingDB('uptime_db'); if(a.auth('checkmate_app','test-app-password').ok!==1)quit(1); if(!a.migration_probe.findOne({preserved:true}))quit(2); a.migration_probe.insertOne({appWrite:true}); if(a.runCommand({serverStatus:1}).ok!==1)quit(4); let denied=false; try { db.getSiblingDB('admin').getUsers(); }catch(e){denied=e.code===13;} if(!denied)quit(3);")
         compose('run', '--rm', 'db_init')
         node("""
 const http=require('http'),assert=require('assert');
@@ -117,6 +122,9 @@ const req=(method,path)=>new Promise((resolve,reject)=>{const q=http.request({so
 })().catch(e=>{console.error(e.message);process.exit(1)});
 """)
         print('Runtime smoke passed, including existing-data migration and repeat initialization.')
+    except Exception:
+        print(compose('logs', '--tail', '60'))
+        raise
     finally:
         try:
             compose('down', '-v', '--remove-orphans')

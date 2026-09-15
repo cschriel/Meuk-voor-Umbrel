@@ -39,6 +39,8 @@ Capture starts with the app and uses host networking for host interface counters
 
 Configure SMTP in Checkmate if you want email delivery. Checkmate handles its own login, with the extra Umbrel login disabled. Public status pages are accessible without an Umbrel account to anyone who can reach the app on your network.
 
+See [operations and recovery instructions](koningkoffie-checkmate/OPERATIONS.md) for diagnostics, backup/restore, the public URL override, and remaining host-dependent limitations.
+
 The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, which excludes Raspberry Pi 4. See [MongoDB's hardware requirements](https://www.mongodb.com/docs/manual/administration/production-notes/). Checkmate is pinned to [v3.12.0](https://github.com/bluewave-labs/Checkmate/releases/tag/v3.12.0), with all container images pinned by digest. The Node image used by the Docker filter and MongoDB are updated manually.
 
 ## Enterprise-grade ambition

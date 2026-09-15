@@ -2,7 +2,7 @@
 
 ## Upgrade and access
 
-Version 3.12.0.2 keeps the installed Checkmate/Capture image versions and the existing successful secret derivations. On startup, `db_init` authenticates with the existing MongoDB administrator and creates or updates `checkmate_app` with `readWrite` access only to `uptime_db`. Existing collections remain untouched. Checkmate waits for this step before starting. The root account remains available for database administration, but its credentials are no longer passed to Checkmate.
+Version 3.12.0.2 keeps the installed Checkmate/Capture image versions and the existing successful secret derivations. On startup, `db_init` authenticates with the existing MongoDB administrator and creates or updates `checkmate_app` with `readWrite` access only to `uptime_db`, plus a narrowly scoped `serverStatus` privilege for Checkmate’s database diagnostics. Existing collections remain untouched. Checkmate waits for this step before starting. The root account remains available for database administration, but its credentials are no longer passed to Checkmate.
 
 Existing Docker monitors using `unix:///var/run/docker.sock` keep working through the local filter. Other Unix paths or custom Docker API clients are not supported by the filter. It permits Checkmate's ping, container list, inspection, non-streaming statistics and bounded logs. Mutations, exec, file archive/export, environment variables in inspection, and TCP access to the proxy are excluded. The small proxy process still has full daemon authority internally; it is an isolation boundary, not Docker authorization enforcement on the host. Do not add the raw socket back to the Checkmate container.
 
