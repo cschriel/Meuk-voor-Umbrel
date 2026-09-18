@@ -1,77 +1,96 @@
-# Koning Koffie ☕
+# KoningKoffie's appstore ☕
 
-### Meuk voor Umbrel. Now with a README, so you know it's serious.
+### Meuk voor Umbrel. A personal app store with an unnecessarily official name.
 
 I wanted to make a resume. Naturally, I started by maintaining an app store.
 
-Welcome to **Koning Koffie**, a personal Umbrel Community App Store with a target audience of one. Market research was brief. The stakeholder meeting went badly anyway.
+**KoningKoffie** is a small community app store for [Umbrel](https://umbrel.com), containing things I wanted to run on my own hardware. The target audience is mostly me, but you're welcome to join the stakeholder meeting. Bring coffee. There is no agenda.
 
-## Our extensive catalogue
+## The extensive catalogue
 
-**Reactive Resume.**
+### Reactive Resume
 
-You can use it to explain to prospective employers that you're good at prioritising, while carefully omitting the evening you spent configuring infrastructure to edit a PDF.
+Build a resume, pick a template, and export it as a PDF. Your accounts, resumes, and uploads stay on your Umbrel.
 
-**Tdarr.**
+Finally, a way to tell employers you're good at prioritising without mentioning the infrastructure project you started to format your work history.
 
-Automated media transcoding and health checks. Because the files were taking up space, and apparently the solution was another application.
+### Tdarr
 
-After installing, open Tdarr through Umbrel and add a library with a source folder under `/media` (Umbrel's shared downloads folder). Set the transcode cache to `/temp`. Review the plugins or flow before enabling processing, since Tdarr can replace original files, and leave enough free disk space for the cache.
+Automate media transcoding and library health checks with configurable plugins and flows. Includes a server and a worker node, with Intel GPU support for Umbrel Home.
 
-The included node, **Umbrel**, has one GPU transcode worker plus CPU workers for software tasks and health checks. Intel GPU access is enabled for Umbrel Home through `/dev/dri`; Tdarr's startup script grants its user the matching device group permissions. Select an Intel Quick Sync (QSV) or VAAPI encoding plugin or flow in your library to use hardware encoding, then check a sample job's report for `hevc_qsv`, `h264_qsv`, `hevc_vaapi`, or `h264_vaapi`, depending on your selected encoder. See [Tdarr's hardware transcoding documentation](https://docs.tdarr.io/docs/installation/docker/hardware-transcoding/).
+Because buying more storage would have been too straightforward.
 
-This package requires `/dev/dri` on the host. On hardware without it, remove the `devices` mapping and set `transcodegpuWorkers` to `"0"` before starting. External nodes require additional configuration.
+### Checkmate
 
-**Checkmate.**
+Monitor uptime, response times, and incidents for your websites and services. Includes Docker container monitoring and Capture for keeping an eye on your Umbrel's hardware.
 
-Uptime monitoring, response-time charts, and incident tracking. So now there's an application to tell me when the other applications have stopped being applications.
+An application that tells you when the other applications have stopped being applications. We have achieved management.
 
-Open Checkmate through Umbrel on port `52345` and create your administrator account on first launch. Use your Umbrel's local IPv4 address; the package detects it automatically for notification links. Add your first website or service monitor using an address reachable from Umbrel. Accounts, settings, and monitoring history persist in MongoDB, and authentication and encryption secrets are derived automatically per installation.
+## Getting started
 
-To monitor Umbrel's Docker containers, add a **Docker** monitor with host URL `unix:///var/run/docker.sock`. Existing monitor URLs continue to work. This now connects to a local filtering proxy: container listing, statistics, limited inspection, and the most recent 500 log lines are allowed; Docker mutations, file archives, and other API endpoints are denied. Inspection responses omit environment variables. The proxy alone holds the host socket, runs without a TCP network, and shares its filtered socket with Checkmate. Container logs can still contain sensitive application output; enable them only where useful.
+Add this repository to your community app stores in Umbrel:
 
-[Capture 1.4.0](https://github.com/bluewave-labs/capture/releases/tag/v1.4.0) is included for Umbrel hardware monitoring. In Checkmate's **Infrastructure** section, add a monitor named **Umbrel**:
+```text
+https://github.com/cschriel/Meuk-voor-Umbrel
+```
 
-- **Capture endpoint:** `http://UMBREL-IP:59232/api/v1/metrics`, replacing `UMBREL-IP` with your Umbrel's local IPv4 address.
-- **Authorization secret:** the app password shown by Umbrel for Checkmate. Paste the value alone, without `Bearer`. This is Capture's API key; your Checkmate login is the account you create yourself.
+Open **Koning Koffie** in the app store, choose an app, and install it. Open the installed app through Umbrel to get started.
 
-Capture starts with the app and uses host networking for host interface counters, plus read-only mounts of `/proc`, `/sys`, `/etc/os-release`, and the host filesystem at `/host/root` for CPU, memory, disk usage/I/O, and OS information. Disk paths may appear with the `/host/root` prefix. Temperature readings depend on the host's sensors. The agent runs as its image's non-root user with capabilities dropped; S.M.A.R.T. disk health is not included. Its API requires the generated key and listens on host port `59232`, which must be available.
+The procurement process is now complete. Please file your imaginary receipt.
 
-Configure SMTP in Checkmate if you want email delivery. Checkmate handles its own login, with the extra Umbrel login disabled. Public status pages are accessible without an Umbrel account to anyone who can reach the app on your network.
+## A few useful setup notes
 
-See [operations and recovery instructions](koningkoffie-checkmate/OPERATIONS.md) for diagnostics, backup/restore, the public URL override, and remaining host-dependent limitations.
+### Reactive Resume
 
-The included MongoDB 8.0 requires AVX on x86-64 or ARMv8.2-A or newer on ARM, which excludes Raspberry Pi 4. See [MongoDB's hardware requirements](https://www.mongodb.com/docs/manual/administration/production-notes/). Checkmate is pinned to [v3.12.0](https://github.com/bluewave-labs/Checkmate/releases/tag/v3.12.0), with all container images pinned by digest. The Node image used by the Docker filter and MongoDB are updated manually.
+- Create your own account on first launch and use your Umbrel's local IPv4 address to sign in.
+- This package is configured for personal use on your local network.
+- Email delivery and password recovery by email need additional SMTP configuration. The AI Agent workspace is not included.
 
-## Enterprise-grade ambition
+### Tdarr
 
-- **Self-hosted:** because apparently I needed to be responsible for another thing.
-- **Automated updates:** yesterday's decisions, delivered to tomorrow's problems. Reactive Resume updates automatically; Checkmate and Capture updates arrive as pull requests for review. Tdarr is updated manually.
-- **Community-driven:** I have occasionally discussed it with myself.
-- **Coffee-powered:** the only dependency with a reliable upgrade cycle.
-- **A focused roadmap:** get this working, then develop an entirely unrelated obsession.
+- Add a library with a source folder under `/media`, which maps to Umbrel's shared downloads folder.
+- Set the transcode cache to `/temp` and leave enough free disk space for it.
+- Review your plugins or flow before starting: Tdarr can replace original media files. Enthusiasm is not a backup strategy.
+- For Intel hardware encoding, choose a Quick Sync (QSV) or VAAPI plugin or flow. This package requires a host with `/dev/dri`; other hardware and external nodes need additional configuration.
+
+### Checkmate
+
+Create your administrator account on first launch. Use your Umbrel's local IPv4 address on port `52345`, and add monitors using addresses your Umbrel can reach.
+
+For **Docker container monitoring**, add a Docker monitor with this host URL:
+
+```text
+unix:///var/run/docker.sock
+```
+
+For **hardware monitoring**, add a monitor in **Infrastructure** named **Umbrel**:
+
+- **Capture endpoint:** `http://UMBREL-IP:59232/api/v1/metrics` — replace `UMBREL-IP` with your Umbrel's local IPv4 address.
+- **Authorization secret:** the app password shown by Umbrel for Checkmate, without a `Bearer` prefix. This is the hardware monitoring key; your Checkmate login is the account you create yourself.
+
+Email notifications need SMTP settings. Public status pages are visible to anyone who can reach the app on your network.
+
+This package requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU. Raspberry Pi 4 is not supported.
+
+For diagnostics and backup or restore instructions, see the [Checkmate operations guide](koningkoffie-checkmate/OPERATIONS.md).
 
 ## Support
 
-The **Update Checkmate and Capture** GitHub Action checks stable upstream releases daily at 05:43 UTC and can also be run manually from Actions. It verifies image digests and availability for both amd64 and arm64, then validates Compose and Umbrel installer compatibility before opening or updating one review PR. Capture-only updates increment the Umbrel package revision. MongoDB stays pinned and is updated manually.
-
-The workflow uses the existing `SYNC_TOKEN` secret when available (it needs repository contents and pull-request write access), otherwise `GITHUB_TOKEN`. For the fallback, enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. The workflow never approves or merges its PR. Validation also runs before PR creation, so it does not depend on whether a bot-created PR triggers another workflow. The CI smoke test starts a disposable stack with test credentials and a fake Docker API, checks data-preserving database migration and restricted permissions, exercises the real Docker client through the filter, and checks Capture authentication. Review upstream configuration changes and verify physical host metrics on Umbrel before merging.
-
 There is no support department. There is a person with a browser, several open tabs, and a growing suspicion that this could have been simpler.
 
-If it breaks, you're welcome to open an issue. This will convert the problem into a problem with a number.
+If something breaks, [open an issue](https://github.com/cschriel/Meuk-voor-Umbrel/issues). Include what you were trying to do, what happened, and any useful error messages. This converts the problem into a problem with a number, which is at least administratively satisfying.
 
 ## Contributing
 
-Found something worth fixing? Open a pull request.
+Found something worth fixing? Pull requests are welcome.
 
 Found a way to turn this into a subscription platform? Please close the tab.
 
-## Acknowledgements
+## Credit where it's due
 
-[Reactive Resume](https://github.com/amruthpillai/reactive-resume) provides the resume builder. [Tdarr](https://tdarr.io) provides the media processing. [Checkmate](https://github.com/bluewave-labs/Checkmate) provides the monitoring. [Umbrel](https://umbrel.com) provides the platform.
+The actual applications are built by the people behind [Reactive Resume](https://github.com/amruthpillai/reactive-resume), [Tdarr](https://tdarr.io), [Checkmate](https://github.com/bluewave-labs/Checkmate), and [Capture](https://github.com/bluewave-labs/capture). [Umbrel](https://umbrel.com) provides the platform.
 
-I provide the additional configuration and the opportunity for something else to go wrong.
+I provide the packaging, the coffee, and another place for a configuration error to occur.
 
 ---
 
