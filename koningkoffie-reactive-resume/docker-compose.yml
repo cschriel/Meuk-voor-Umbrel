@@ -16,9 +16,9 @@ services:
       PORT: 3000
       TZ: Europe/Amsterdam
       APP_URL: http://${APP_KONINGKOFFIE_REACTIVE_RESUME_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}
-      DATABASE_URL: postgresql://reactive_resume:${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD}@koningkoffie-reactive-resume_db_1:5432/reactive_resume
-      AUTH_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET}
-      ENCRYPTION_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET}
+      DATABASE_URL: postgresql://reactive_resume:${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD:?Missing PostgreSQL password}@koningkoffie-reactive-resume_db_1:5432/reactive_resume
+      AUTH_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET:?Missing authentication secret}
+      ENCRYPTION_SECRET: ${APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET:?Missing encryption secret}
       LOCAL_STORAGE_PATH: /app/data
       FLAG_DISABLE_SIGNUPS: "false"
     volumes:
@@ -39,7 +39,7 @@ services:
     environment:
       POSTGRES_DB: reactive_resume
       POSTGRES_USER: reactive_resume
-      POSTGRES_PASSWORD: ${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD:?Missing PostgreSQL password}
     volumes:
       - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
     healthcheck:

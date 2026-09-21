@@ -1,7 +1,21 @@
 # Umbrel derives independent, stable secrets per installation.
-export APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD="$(derive_entropy "${app_entropy_identifier}-postgres-password")"
-export APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET="$(derive_entropy "${app_entropy_identifier}-auth-secret")"
-export APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET="$(derive_entropy "${app_entropy_identifier}-encryption-secret")"
+# Preserve successful derivations, but never start with missing or failed ones.
+rr_secret() (
+  set -o pipefail
+  local value
+  value="$(derive_entropy "${app_entropy_identifier}-$1")" && [[ -n "$value" ]] || {
+    echo "Reactive Resume: could not derive $1." >&2
+    return 1
+  }
+  printf '%s' "$value"
+)
+export APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD=""
+export APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET=""
+export APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET=""
+APP_KONINGKOFFIE_REACTIVE_RESUME_POSTGRES_PASSWORD="$(rr_secret postgres-password)" || return 1
+APP_KONINGKOFFIE_REACTIVE_RESUME_AUTH_SECRET="$(rr_secret auth-secret)" || return 1
+APP_KONINGKOFFIE_REACTIVE_RESUME_ENCRYPTION_SECRET="$(rr_secret encryption-secret)" || return 1
+unset -f rr_secret
 
 # Ask the host routing table for its preferred IPv4 source address.
 # This route lookup does not send traffic to the destination.

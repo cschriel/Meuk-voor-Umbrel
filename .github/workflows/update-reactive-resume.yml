@@ -25,6 +25,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: python3 .github/scripts/update_reactive_resume.py
+      - name: Validate secret generation and required Compose variables
+        run: |
+          docker compose version
+          python3 -m unittest discover -s .github/scripts -p 'test_reactive_resume*.py'
       - name: Commit and publish the update
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
