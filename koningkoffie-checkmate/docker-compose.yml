@@ -9,7 +9,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   server:
-    image: ghcr.io/bluewave-labs/checkmate:v3.12.0@sha256:bccfe26411a52590ec67e9c6a890a66c154e10b89a7598c6ae00262f3a88b3de
+    image: ghcr.io/bluewave-labs/checkmate:v3.13.0@sha256:e0d121ee70537423665ada5896a3d81dad00913036d26d037113b8f9f14726ae
     init: true
     restart: on-failure
     logging:
@@ -28,6 +28,7 @@ services:
     environment:
       NODE_ENV: production
       LOG_LEVEL: info
+      TELEMETRY_ENABLED: "false"
       TZ: Europe/Amsterdam
       CLIENT_HOST: ${APP_KONINGKOFFIE_CHECKMATE_PUBLIC_URL:-http://${APP_KONINGKOFFIE_CHECKMATE_LOCAL_IP:?Unable to detect Umbrel IPv4 address}:${APP_PROXY_PORT}}
       DB_CONNECTION_STRING: mongodb://checkmate_app:${APP_KONINGKOFFIE_CHECKMATE_DB_PASSWORD:?Missing application database password}@koningkoffie-checkmate_db_1:27017/uptime_db?authSource=uptime_db
