@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-checkmate
 category: networking
 name: Checkmate
-version: "3.13.0"
+version: "3.13.1"
 tagline: Monitor uptime, response times, and incidents
 icon: https://raw.githubusercontent.com/bluewave-labs/Checkmate/v3.12.0/client/public/checkmate_favicon.svg
 description: >-
@@ -44,7 +44,7 @@ description: >-
 
   MongoDB requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU.
   Older hardware, including Raspberry Pi 4, is not supported by this package.
-releaseNotes: "Update Checkmate to 3.13.0 with Docker container alerts, editable monitor URLs, custom monitoring intervals, public status-page incident history, and a 12/24-hour time setting. Includes notification, HTTP, certificate, and IPv6 monitoring fixes. The new anonymous telemetry is disabled in this package. Capture remains at 1.4.0. Existing data, secrets, and filtered Docker access are preserved. No new database migrations are required by this release. Full release notes: https://github.com/bluewave-labs/Checkmate/releases/tag/v3.13.0"
+releaseNotes: "Updated Checkmate 3.13.1: https://github.com/bluewave-labs/Checkmate/releases/tag/v3.13.1"
 developer: BlueWave Labs
 website: https://checkmate.so
 dependencies: []
