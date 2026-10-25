@@ -9,7 +9,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   server:
-    image: ghcr.io/bluewave-labs/checkmate:v3.13.0@sha256:e0d121ee70537423665ada5896a3d81dad00913036d26d037113b8f9f14726ae
+    image: ghcr.io/bluewave-labs/checkmate:v3.13.1@sha256:d15fc042312c7b40177f81645817828add54359131b6b0782a25e4fb854c9634
     init: true
     restart: on-failure
     logging:
