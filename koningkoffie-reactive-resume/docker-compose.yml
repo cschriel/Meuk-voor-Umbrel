@@ -7,7 +7,7 @@ services:
       APP_PORT: 3000
 
   server:
-    image: amruthpillai/reactive-resume:v6.0.6@sha256:9ba846665ec3b703c904f61ed75cc0e2c0fe71efd2fd51f45600c6ce23744e78
+    image: amruthpillai/reactive-resume:v6.0.7@sha256:d6804c7f1298e87218dddc4b5d793a030aa9566c58d3aad3045541f172cfac20
     user: "1000:1000"
     init: true
     restart: on-failure
