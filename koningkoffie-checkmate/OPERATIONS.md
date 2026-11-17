@@ -2,7 +2,11 @@
 
 ## Upgrade and access
 
-Version 3.13.0 updates Checkmate and retains Capture 1.4.0 and the existing secret derivations. Checkmate's image includes the required Node 24 runtime. The new anonymous telemetry is disabled with `TELEMETRY_ENABLED=false`. Upstream reports no new required environment variables or database migrations for this release.
+Version 4.0.0 updates Checkmate and retains Capture 1.4.0 and the existing secret derivations. Checkmate's image includes the required Node 24 runtime. Anonymous telemetry remains disabled with `TELEMETRY_ENABLED=false`. No new required environment variables are introduced.
+
+This release adds a dashboard, heartbeat monitors, and optional Checkmate Connect remote access and encrypted cloud backups. Connect remote access is off by default; enrollment requires a superadmin and the existing `ENCRYPTION_KEY`. The image includes the MongoDB tools needed for Connect backups.
+
+On upgrade, migration 0013 sets missing status-page timezones to UTC and normalizes `Etc/UTC` to `UTC`. Tag, status-page, and proxy actions now require an admin. Make a backup using the procedure below before upgrading. See the [upstream release notes](https://github.com/bluewave-labs/Checkmate/releases/tag/v4.0.0).
 
 On startup, `db_init` authenticates with the existing MongoDB administrator and creates or updates `checkmate_app` with `readWrite` access only to `uptime_db`, plus a narrowly scoped `serverStatus` privilege for Checkmate’s database diagnostics. Existing collections remain untouched. Checkmate waits for this step before starting. The root account remains available for database administration, but its credentials are no longer passed to Checkmate.
 
@@ -30,7 +34,7 @@ sudo bash /home/umbrel/umbrel/app-data/koningkoffie-checkmate/hooks/diagnostics
 
 This prints container status, two Capture network samples five seconds apart, host counters, and Docker proxy reachability. It does not print the API key. Capture's minimal image does not contain curl or a shell, so diagnostics run from the host. Interface counters should increase with traffic. The Checkmate 3.12.0 network charts can show zero when a chart bucket contains only one sample; use a 15-second monitor interval and compare with the day view. The misleading container-namespace notice does not prove network isolation.
 
-Checkmate 3.12.0 also labels total disk capacity as “Free” in its disk gauge. Compare the actual `free_bytes` in Capture or `df -h`; don't delete system files based on that label. These upstream UI behaviors have not been patched or reported upstream by this repository, and have not been reverified on 3.13.0. Version 3.13.0 adds a 12/24-hour time setting; display timezone is independently configurable.
+Checkmate 3.12.0 also labels total disk capacity as “Free” in its disk gauge. Compare the actual `free_bytes` in Capture or `df -h`; don't delete system files based on that label. These upstream UI behaviors have not been patched or reported upstream by this repository, and have not been reverified on 4.0.0. Version 3.13.0 adds a 12/24-hour time setting; display timezone is independently configurable.
 
 ## Backup and restore
 
