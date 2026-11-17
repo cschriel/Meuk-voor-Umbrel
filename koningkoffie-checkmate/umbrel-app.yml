@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-checkmate
 category: networking
 name: Checkmate
-version: "4.0.0"
+version: "4.0.0.1"
 tagline: Monitor uptime, response times, and incidents
 icon: https://raw.githubusercontent.com/bluewave-labs/Checkmate/v3.12.0/client/public/checkmate_favicon.svg
 description: >-
@@ -44,7 +44,7 @@ description: >-
 
   MongoDB requires an x86-64 CPU with AVX or an ARMv8.2-A or newer CPU.
   Older hardware, including Raspberry Pi 4, is not supported by this package.
-releaseNotes: "Updated Checkmate 4.0.0: https://github.com/bluewave-labs/Checkmate/releases/tag/v4.0.0"
+releaseNotes: "Fix ICMP ping monitors failing with spawn EPERM / operation not permitted. Adjust container permissions for the bundled ping executable and allow ICMP echo sockets for the Checkmate user. Checkmate remains on 4.0.0. Install this package update to recreate the container with the corrected settings."
 developer: BlueWave Labs
 website: https://checkmate.so
 dependencies: []

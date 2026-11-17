@@ -2,6 +2,8 @@
 
 ## Upgrade and access
 
+Package revision 4.0.0.1 fixes ICMP monitors failing with `spawn EPERM` or `exec /usr/bin/ping: operation not permitted`. The server drops all capabilities except `NET_RAW`, which permits execution of the bundled capability-marked ping binary. `no-new-privileges` stays enabled, and the container's `net.ipv4.ping_group_range` allows unprivileged ICMP echo sockets only for the image's node group (GID 1000). Install the Umbrel package update to recreate the container; restarting the old container does not apply these settings. The upstream Checkmate image is unchanged.
+
 Version 4.0.0 updates Checkmate and retains Capture 1.4.0 and the existing secret derivations. Checkmate's image includes the required Node 24 runtime. Anonymous telemetry remains disabled with `TELEMETRY_ENABLED=false`. No new required environment variables are introduced.
 
 This release adds a dashboard, heartbeat monitors, and optional Checkmate Connect remote access and encrypted cloud backups. Connect remote access is off by default; enrollment requires a superadmin and the existing `ENCRYPTION_KEY`. The image includes the MongoDB tools needed for Connect backups.
@@ -23,6 +25,8 @@ Put your URL (for example `https://your-monitoring-hostname`) on a single line i
 Capture continues to use host networking and an authenticated HTTP listener on 59232. Network reachability and TLS termination are host/network configuration, not silently changed by this package. Keep access within a trusted LAN or protected tunnel and do not forward this port to the Internet. A separate TLS endpoint is needed if untrusted networks must carry its bearer key.
 
 ## Health and diagnostics
+
+To check ICMP execution independently of LAN routing or firewalls, run `sudo docker exec koningkoffie-checkmate_server_1 ping -c 1 127.0.0.1` on Umbrel. Then test the monitor's target IP. CI tests both loopback and another container through Checkmate's ping library as the normal non-root user; Docker API `/_ping` checks alone do not cover ICMP.
 
 Checkmate's health check now requires both worker readiness (including its database connection) and the web API health endpoint. The Docker proxy health check exercises its real socket path. Docker health status is diagnostic; Docker does not restart a container just because it becomes unhealthy. Umbrel remains responsible for app lifecycle and restart policies stay `on-failure` to retain existing behavior.
 

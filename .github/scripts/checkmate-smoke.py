@@ -95,6 +95,16 @@ http.createServer((req,res)=>{
     def node(js):
         return compose('exec', '-T', 'server', 'node', '-e', js)
     try:
+        # Run as the image's normal user with the production security settings.
+        # Docker's HTTP /_ping does not exercise spawning the ICMP executable.
+        print(compose('run', '--rm', '--no-deps', 'server', 'node', '-e', """
+const assert=require('assert'),fs=require('fs');
+assert.equal(process.getgid(),1000);
+assert.match(fs.readFileSync('/proc/self/status','utf8'),/NoNewPrivs:\\s+1/);
+require('ping').promise.probe('127.0.0.1',{timeout:2,min_reply:1})
+ .then(r=>{assert(r.alive,'ICMP loopback failed: '+r.output);console.log('ICMP spawn and loopback passed as non-root.');})
+ .catch(e=>{console.error(e);process.exit(1)});
+"""))
         compose('up', '-d', 'db')
         wait_for(lambda: 'healthy' == run('docker', 'inspect', '--format', '{{.State.Health.Status}}', compose('ps', '-q', 'db').strip()).strip(), 'MongoDB startup')
         # Simulate an existing installation containing user data before migration.
@@ -107,6 +117,8 @@ http.createServer((req,res)=>{
 const http=require('http'),assert=require('assert');
 const req=(method,path)=>new Promise((resolve,reject)=>{const q=http.request({socketPath:'/var/run/docker.sock',method,path},r=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>resolve({status:r.statusCode,body:b}));});q.on('error',reject);q.end();});
 (async()=>{
+ const icmp=await require('ping').promise.probe('db',{timeout:2,min_reply:1});
+ assert(icmp.alive,'ICMP to another container failed: '+icmp.output);
  assert.equal((await req('GET','/_ping')).status,200);
  assert.equal((await req('POST','/containers/create')).status,403);
  assert.equal((await req('GET','/containers/'+'a'.repeat(64)+'/archive?path=/etc/passwd')).status,403);
@@ -118,7 +130,7 @@ const req=(method,path)=>new Promise((resolve,reject)=>{const q=http.request({so
  const no=await fetch('http://capture:59232/api/v1/metrics');assert.equal(no.status,401);
  const yes=await fetch('http://capture:59232/api/v1/metrics',{headers:{Authorization:'Bearer test-capture-key'}});assert([200,207].includes(yes.status));
  const data=await yes.json();assert(data.data.cpu);assert(data.data.memory);assert(Array.isArray(data.data.net));
- console.log('Runtime smoke passed: migration preserves data, restricted DB user, filtered Docker client, and Capture authentication/metrics.');
+ console.log('Runtime smoke passed: ICMP, migration preserves data, restricted DB user, filtered Docker client, and Capture authentication/metrics.');
 })().catch(e=>{console.error(e.message);process.exit(1)});
 """)
         print('Runtime smoke passed, including existing-data migration and repeat initialization.')

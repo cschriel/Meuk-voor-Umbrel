@@ -35,6 +35,9 @@ Dir.mktmpdir('checkmate-compose-') do |tmp|
   abort errors unless status.success?
   services = JSON.parse(output).fetch('services')
   server, capture, db = services.values_at('server', 'capture', 'db')
+  abort 'Unexpected server capabilities' unless server['cap_drop'] == ['ALL'] && server['cap_add'] == ['NET_RAW']
+  abort 'Server privilege escalation enabled' unless server.fetch('security_opt').include?('no-new-privileges:true')
+  abort 'ICMP echo permission missing' unless server.dig('sysctls', 'net.ipv4.ping_group_range') == '1000 1000'
   proxy = services.fetch('docker_proxy')
   abort 'Socket group missing' unless proxy['group_add'] == ['998']
   abort 'Server has host socket group' if server['group_add']
