@@ -2,7 +2,7 @@ manifestVersion: 1.3
 id: koningkoffie-tdarr
 category: media
 name: Tdarr
-version: "2.81.01"
+version: "3.08.00"
 tagline: Automate media transcoding and library health checks
 icon: https://raw.githubusercontent.com/HaveAGitGat/Tdarr/master/assets/tdarr-logo.svg
 description: >-
@@ -27,7 +27,13 @@ description: >-
   library to use hardware encoding. CPU workers remain available for software
   tasks and health checks. This package requires a /dev/dri device on the host;
   external nodes require additional configuration.
-releaseNotes: "Initial Umbrel release with Tdarr 2.81.01, Intel GPU passthrough for Umbrel Home, an internal CPU/GPU node, and shared downloads access."
+releaseNotes: >-
+  Updated Tdarr from 2.81.01 to 3.08.00. This is a major-version upgrade:
+  back up your Tdarr data and configuration before installing. The internal
+  CPU/GPU node, Intel GPU passthrough, shared downloads, and Umbrel login
+  remain configured as before. After upgrading, confirm the Umbrel node
+  connects and test your plugins/flows on a copy of a media file before
+  resuming normal processing. Release details: https://tdarr.io/download/
 developer: HaveAGitGat
 website: https://tdarr.io
 dependencies: []

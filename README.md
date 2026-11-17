@@ -53,6 +53,8 @@ The procurement process is now complete. Please file your imaginary receipt.
 - Review your plugins or flow before starting: Tdarr can replace original media files. Enthusiasm is not a backup strategy.
 - For Intel hardware encoding, choose a Quick Sync (QSV) or VAAPI plugin or flow. This package requires a host with `/dev/dri`; other hardware and external nodes need additional configuration.
 
+When upgrading from Tdarr 2.x to 3.08.00, pause processing and let active jobs finish, then stop the app through Umbrel and back up its `app-data/koningkoffie-tdarr/data` directory. After upgrading, confirm the **Umbrel** node connects and test a copied media file with your CPU/GPU plugins or flows before resuming normal processing. To roll back, restore the pre-upgrade data together with the previous package/image; do not assume data written by 3.x can be opened by 2.x. Access continues through Umbrel's login, with Tdarr's own authentication explicitly disabled for the internal node.
+
 ### Checkmate
 
 Create your administrator account on first launch. Use your Umbrel's local IPv4 address on port `52345`, and add monitors using addresses your Umbrel can reach.
