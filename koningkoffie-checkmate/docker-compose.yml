@@ -9,7 +9,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   server:
-    image: ghcr.io/bluewave-labs/checkmate:v4.0.0@sha256:ccaf4135e68001d07b84d4127cbad52f620fd1e0a80ea401e4b31eda19be7895
+    image: ghcr.io/bluewave-labs/checkmate:v4.1.0@sha256:f66a53fce561a526f939d994337843ac03211364daa3fd1de3a492c895c503d5
     init: true
     restart: on-failure
     logging:
@@ -99,7 +99,7 @@ services:
         condition: service_healthy
 
   capture:
-    image: ghcr.io/bluewave-labs/capture:v1.4.0@sha256:c4917c572b12d4068b5987494132da728363591ec9227a116ef07cd77222292f
+    image: ghcr.io/bluewave-labs/capture:v2.0.1@sha256:e7fefcdf2d26388807bbe158fa1a1011b4ecdc16efddb5964b63feb3c68020f7
     restart: on-failure
     logging:
       driver: json-file
