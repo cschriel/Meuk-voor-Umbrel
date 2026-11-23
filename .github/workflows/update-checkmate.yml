@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: update-checkmate
@@ -30,29 +29,39 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/update_checkmate.py
+      - name: Detect package changes
+        id: changes
+        run: |
+          if git diff --quiet -- koningkoffie-checkmate/docker-compose.yml koningkoffie-checkmate/umbrel-app.yml README.md; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            echo "Checkmate and Capture are already current." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Validate Compose and Umbrel installer compatibility
+        if: steps.changes.outputs.updated == 'true'
         run: |
           ruby .github/scripts/validate_checkmate.rb
           git diff --check
       - name: Runtime smoke test
+        if: steps.changes.outputs.updated == 'true'
         run: |
           node --test .github/scripts/test-checkmate-proxy.cjs
           python3 .github/scripts/checkmate-smoke.py
-      - name: Open or update review pull request
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
-        with:
-          token: ${{ secrets.SYNC_TOKEN || github.token }}
-          branch: automation/checkmate-updates
-          delete-branch: true
-          add-paths: |
-            koningkoffie-checkmate/docker-compose.yml
-            koningkoffie-checkmate/umbrel-app.yml
-            README.md
-          commit-message: 'chore: update Checkmate and Capture'
-          title: 'chore: update Checkmate and Capture'
-          body: |
-            Updates stable Checkmate and/or Capture releases. See the manifest release notes for upstream links and the diff for exact versions and image digests.
-
-            Verified registry digests and availability of linux/amd64 and linux/arm64 images. Compose validation, required-variable checks, and Umbrel 1.7.x volume compatibility checks passed before opening this PR.
-
-            Manual review required: check upstream deployment changes and test startup, Docker monitoring, and Capture metrics on Umbrel. The disposable runtime test covers startup, existing-data migration, restricted database permissions, filtered Docker API calls, and Capture authentication. Physical host metrics still need verification on Umbrel. MongoDB remains unchanged.
+      # GITHUB_TOKEN pushes do not trigger the separate push validation workflow.
+      # Keep every required check above this step in the same job.
+      - name: Publish tested update
+        if: steps.changes.outputs.updated == 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          git diff --check
+          git add -- koningkoffie-checkmate/docker-compose.yml koningkoffie-checkmate/umbrel-app.yml README.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: update Checkmate and Capture'
+          # A concurrent change must reject this push. The next run will test
+          # against the new default branch; never rebase or force-push here.
+          git push origin "HEAD:${DEFAULT_BRANCH}"
+          echo "Published tested Checkmate/Capture update: $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,15 @@
 # Operating Checkmate on Umbrel
 
+## Automatic package updates
+
+The [Checkmate and Capture workflow](https://github.com/cschriel/Meuk-voor-Umbrel/actions/workflows/update-checkmate.yml) checks the latest stable releases daily at 05:43 UTC (06:43 Amsterdam winter time, 07:43 summer time; GitHub may delay scheduled runs). It can also be started with **Run workflow** on the default branch.
+
+When a release is available, the updater verifies its image digest and the availability of Linux AMD64 and ARM64 images, then updates the package version and release notes. Updater tests, Compose and Umbrel compatibility validation, proxy tests, and the disposable Docker runtime smoke test must pass before the workflow commits and pushes the update to the default branch. This publishes the package to the community app store; installing it on Umbrel remains a separate action. MongoDB is not automatically upgraded.
+
+When both releases are already current, runtime tests and publishing are skipped. A failed check prevents publication; inspect the failed run in Actions and rerun it after resolving the cause. If another commit reaches the default branch during testing, the push is rejected and the next run tests the update against the new branch state.
+
+The workflow uses GitHub's built-in token with `contents: write`; no personal token or pull-request approval is needed. Repository rules must allow that token to push to the default branch. Validation runs before publishing in the same job because pushes made with this token do not trigger another push workflow. Disable the workflow in Actions to pause automatic publication. CI exercises disposable data and simulated Docker monitoring; physical host metrics still require verification on Umbrel.
+
 ## Upgrade and access
 
 Package revision 4.0.0.1 fixes ICMP monitors failing with `spawn EPERM` or `exec /usr/bin/ping: operation not permitted`. The server drops all capabilities except `NET_RAW`, which permits execution of the bundled capability-marked ping binary. `no-new-privileges` stays enabled, and the container's `net.ipv4.ping_group_range` allows unprivileged ICMP echo sockets only for the image's node group (GID 1000). Install the Umbrel package update to recreate the container; restarting the old container does not apply these settings. The upstream Checkmate image is unchanged.

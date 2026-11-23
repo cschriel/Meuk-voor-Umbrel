@@ -1,4 +1,4 @@
-"""Prepare reviewed Checkmate/Capture updates; never update MongoDB or publish directly."""
+"""Prepare stable Checkmate/Capture updates; the workflow tests before publishing."""
 import argparse
 import hashlib
 import json
@@ -132,7 +132,7 @@ def main():
         for path, content, original in zip(paths, updated, contents):
             if content != original:
                 path.write_text(content)
-    print('Update prepared for review.' if updates else 'No updates available.')
+    print('Update prepared for validation.' if updates else 'No updates available.')
 
 
 if __name__ == '__main__':
